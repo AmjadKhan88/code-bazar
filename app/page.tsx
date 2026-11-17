@@ -1,103 +1,142 @@
-import Image from "next/image";
+import Link from "next/link";
+import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
+import { ProductCard } from "@/components/ProductCard";
+import { SearchBar } from "@/components/SearchBar";
+import { JsonLd } from "@/components/JsonLd";
+import { getCategories, getFeaturedProducts } from "@/lib/catalog";
+import { buildMetadata, getSiteUrl, SITE_NAME } from "@/lib/seo";
 
-export default function Home() {
+export const revalidate = 3600;
+
+export async function generateMetadata() {
+  return buildMetadata({
+    title: "CodeBazaar — Production Source Code, Templates & SaaS Boilerplates",
+    description:
+      "CodeBazaar is the source-code bazaar for builders. Buy production-ready Next.js 15 templates, SaaS boilerplates, and TypeScript developer tools.",
+    slug: "/",
+  });
+}
+
+export default async function HomePage() {
+  const [categories, featuredProducts] = await Promise.all([
+    getCategories(),
+    getFeaturedProducts(),
+  ]);
+
+  const siteUrl = getSiteUrl();
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: SITE_NAME,
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/products?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="flex min-h-screen flex-col">
+      <JsonLd data={orgJsonLd} />
+      <SiteHeader />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+      <main className="flex-1">
+        {/* Hero Section */}
+        <section className="border-b border-stone-200 bg-white">
+          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+            <div className="max-w-3xl">
+              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+                Verified TypeScript &amp; Next.js 15 Source Code
+              </p>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight text-stone-950 sm:text-5xl">
+                CodeBazaar — the source-code bazaar for builders.
+              </h1>
+              <p className="mt-4 text-lg leading-relaxed text-stone-600">
+                Skip boilerplate plumbing. Buy production-hardened SaaS
+                starters, SEO-first Next.js templates, and developer CLIs with
+                instant commercial licensing.
+              </p>
+
+              <div className="mt-8 max-w-xl">
+                <SearchBar />
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-stone-600">
+                <Link
+                  href="/products"
+                  className="font-semibold text-emerald-800 hover:underline"
+                >
+                  Browse all products &rarr;
+                </Link>
+                <span>&middot;</span>
+                <span>Instant ZIP download</span>
+                <span>&middot;</span>
+                <span>Commercial license included</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Categories */}
+        <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-stone-950">
+              Browse by Category
+            </h2>
+            <Link
+              href="/products"
+              className="text-sm font-medium text-emerald-800 hover:underline"
+            >
+              View catalog
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/category/${cat.slug}`}
+                className="rounded-xl border border-stone-200 bg-white p-5 transition hover:border-emerald-700"
+              >
+                <h3 className="text-base font-semibold text-stone-950">
+                  {cat.name}
+                </h3>
+                <p className="mt-1.5 line-clamp-2 text-sm text-stone-600">
+                  {cat.description}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Products */}
+        <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xl font-bold tracking-tight text-stone-950">
+              Featured Source Code
+            </h2>
+            <Link
+              href="/products"
+              className="text-sm font-medium text-emerald-800 hover:underline"
+            >
+              All products &rarr;
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featuredProducts.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                priority={index === 0}
+              />
+            ))}
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <SiteFooter />
     </div>
   );
 }
